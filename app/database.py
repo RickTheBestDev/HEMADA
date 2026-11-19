@@ -1,13 +1,16 @@
+import os
+from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
-from datetime import datetime
-import os
 
-# Garante que a pasta "data" existe para não dar erro
-os.makedirs("data", exist_ok=True)
+# Define o caminho absoluto para a pasta 'data' dentro do projeto
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
 
-# Aponta exatamente para a pasta data da sua imagem
-DATABASE_URL = "sqlite:///./data/banco.db"
+# Garante que o banco seja sempre criado no caminho correto
+DB_PATH = os.path.join(DATA_DIR, "banco.db")
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
@@ -15,6 +18,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# Modelo reservado para controle de usuários / autenticação futura
 class Usuario(Base):
     __tablename__ = "usuarios"
 
