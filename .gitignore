@@ -1,21 +1,24 @@
+
 # Ambiente virtual
+.venv/
 venv/
-.env/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-
-# VS Code
-.vscode/
+.venv/
 
 # Variáveis de ambiente
 .env
 
+# Python
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
 # Logs
 *.log
 
+# Banco de dados SQLite
+data/
+# Banco de dados
 banco.db
-# Ambiente virtual do projeto
-.venv/
+*.db
