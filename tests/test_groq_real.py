@@ -28,6 +28,13 @@ class TestGroqIntegracaoReal(unittest.TestCase):
         if not self.chave_api:
             self.skipTest("Chave API_KEY não configurada no .env. Teste real pulado.")
 
+        # Verifica conectividade de rede com a API da Groq
+        import socket
+        try:
+            socket.getaddrinfo("api.groq.com", 443)
+        except OSError:
+            self.skipTest("Sem acesso à internet ou api.groq.com inacessível. Teste de integração real pulado.")
+
     def test_01_integracao_real_groq_documento_padrao(self):
         """Testa o processamento direto de um PDF padrão de uma página."""
         doc = pymupdf.open()
