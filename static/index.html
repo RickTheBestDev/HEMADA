@@ -1,45 +1,572 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HEMADA - Leitor de PDF com IA</title>
-    
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEMADA — Inteligência Documental</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>HEMADA IA</h1>
-        <p>Envie seu documento e dê um comando para a inteligência artificial.</p>
+  <!-- ══════════════════════════════════════════════════════
+       MENU LATERAL (SIDEBAR)
+  ══════════════════════════════════════════════════════ -->
+  <aside class="menu-lateral" id="menuLateral">
+    <div class="menu-logo">
+      <div class="logo-emblema">
+        <span class="logo-simbolo">⬡</span>
+      </div>
+      <div class="logo-titulos">
+        <span class="logo-texto">HEMADA</span>
+        <span class="logo-subtexto">Inteligência Documental</span>
+      </div>
+    </div>
 
-        <form id="enviarArquivo" class="formulario-upload">
-            <input type="file" id="arquivo" class="input-arquivo" accept="application/pdf" required>
-            
-            <textarea id="perguntaUpload" class="input-prompt" placeholder="Digite seu prompt (Ex: Resuma em tópicos, traduza para espanhol, crie uma tabela de gastos...)" required rows="3"></textarea>
-            
-            <button type="submit" class="btn-enviar">Enviar Arquivo e Executar Prompt</button>
-        </form>
+    <div class="menu-secao-label">MÓDULOS DO SISTEMA</div>
 
-        <p id="mensagem"></p>
+    <nav class="menu-nav">
+      <a href="#dashboard" class="menu-item ativo" data-pagina="dashboard" id="navDashboard">
+        <span class="menu-icone">📊</span>
+        <span class="menu-texto">Dashboard</span>
+      </a>
+      <a href="#upload" class="menu-item" data-pagina="upload" id="navUpload">
+        <span class="menu-icone">⚡</span>
+        <span class="menu-texto">Análise Documental</span>
+      </a>
+      <a href="#historico" class="menu-item" data-pagina="historico" id="navHistorico">
+        <span class="menu-icone">📁</span>
+        <span class="menu-texto">Histórico de PDFs</span>
+      </a>
+      <a href="#chat" class="menu-item" data-pagina="chat" id="navChat">
+        <span class="menu-icone">💬</span>
+        <span class="menu-texto">Assistente IA</span>
+      </a>
+    </nav>
 
-        <div id="resultado" style="display: none; margin-top: 20px;">
-            <h3>Resultado Atual:</h3>
-            <p><strong>Páginas lidas:</strong> <span id="paginas"></span></p>
-            <div class="card-historico">
-                <p><span id="resumo"></span></p>
-            </div>
+    <!-- Status do Sistema no rodapé do menu -->
+    <div class="menu-status-card">
+      <div class="status-cabecalho">
+        <span class="status-ponto online"></span>
+        <span class="status-texto">Sistema Operacional</span>
+      </div>
+      <p class="status-desc">FastAPI + Groq API</p>
+    </div>
+
+    <div class="menu-rodape">
+      <div class="rodape-info">
+        <span class="rodape-projeto">TCC ADS · SENAI</span>
+        <span class="rodape-versao">v1.0 Estável</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Botão mobile para abrir/fechar menu -->
+  <button class="btn-menu-mobile" id="btnMenuMobile" aria-label="Alternar menu de navegação">
+    <span class="icone-menu">☰</span>
+  </button>
+  <div class="overlay-mobile oculto" id="overlayMobile"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       ÁREA PRINCIPAL DE CONTEÚDO
+  ══════════════════════════════════════════════════════ -->
+  <main class="conteudo-principal">
+
+    <!-- Topbar com Título dinâmico e status -->
+    <header class="barra-superior">
+      <div class="topbar-esquerda">
+        <h1 class="titulo-pagina" id="tituloPagina">Dashboard Executivo</h1>
+        <p class="subtitulo-pagina" id="subtituloPagina">Visão geral e métricas da plataforma HEMADA</p>
+      </div>
+      <div class="topbar-direita">
+        <div class="badge-status-topbar" id="badgeStatusGeral">
+          <span class="status-ponto online"></span>
+          <span>Motor IA Conectado</span>
         </div>
+      </div>
+    </header>
+
+    <!-- Notificação de Toast Global -->
+    <div class="toast-notificacao oculto" id="toastNotificacao">
+      <span class="toast-icone" id="toastIcone">✓</span>
+      <span class="toast-mensagem" id="toastMensagem">Mensagem aqui</span>
     </div>
 
-    <div class="container" style="margin-top: 20px;">
-        <h2>Histórico de Consultas</h2>
-        <button onclick="limparHistorico()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">Limpar Banco de Dados</button>
-        
-        <div id="historico" style="margin-top: 15px;">
+    <!-- ══════════════════════════════════════════════════════
+         TELA 1: DASHBOARD
+    ══════════════════════════════════════════════════════ -->
+    <section class="tela" id="telaDashboard">
+
+      <!-- Grade de 4 Indicadores Reais -->
+      <div class="grade-metricas">
+        <div class="card-metrica">
+          <div class="metrica-topo">
+            <span class="metrica-label">Documentos Processados</span>
+            <span class="metrica-icone icone-azul">📄</span>
+          </div>
+          <div class="metrica-valor" id="totalDocumentos">—</div>
+          <div class="metrica-rodape">
+            <span class="metrica-tag">100% dados reais</span>
+            <span class="metrica-detalhe">Persistidos no SQLite</span>
+          </div>
+        </div>
+
+        <div class="card-metrica">
+          <div class="metrica-topo">
+            <span class="metrica-label">Total de Páginas Lidas</span>
+            <span class="metrica-icone icone-esmeralda">📑</span>
+          </div>
+          <div class="metrica-valor" id="totalPaginas">—</div>
+          <div class="metrica-rodape">
+            <span class="metrica-tag tag-sucesso">PyMuPDF</span>
+            <span class="metrica-detalhe">Extração textual completa</span>
+          </div>
+        </div>
+
+        <div class="card-metrica">
+          <div class="metrica-topo">
+            <span class="metrica-label">Média por Documento</span>
+            <span class="metrica-icone icone-ambar">📊</span>
+          </div>
+          <div class="metrica-valor" id="mediaPaginas">—</div>
+          <div class="metrica-rodape">
+            <span class="metrica-tag tag-alerta">Páginas/doc</span>
+            <span class="metrica-detalhe">Cálculo dinâmico</span>
+          </div>
+        </div>
+
+        <div class="card-metrica destaque">
+          <div class="metrica-topo">
+            <span class="metrica-label">Motor Cognitivo</span>
+            <span class="metrica-icone icone-roxo">🤖</span>
+          </div>
+          <div class="metrica-valor">Groq IA</div>
+          <div class="metrica-rodape">
+            <span class="metrica-tag tag-ia">8 Categorias</span>
+            <span class="metrica-detalhe">Resumo e extração factual</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção com Gráfico de Distribuição e Ações Rápidas -->
+      <div class="grade-dupla">
+
+        <!-- Distribuição Real de Documentos -->
+        <div class="painel-card">
+          <div class="painel-cabecalho">
+            <div>
+              <h2 class="painel-titulo">Distribuição por Porte de Documento</h2>
+              <p class="painel-subtitulo">Classificação real baseada no número de páginas</p>
             </div>
-    </div>
+            <span class="badge-pill">Volume Real</span>
+          </div>
 
-    <script src="/script.js"></script>
+          <div class="distribuicao-grafico" id="graficoDistribuicao">
+            <!-- Gerado dinamicamente via JS -->
+            <div class="barra-dist-container">
+              <div class="barra-info">
+                <span>Documentos Curtos (1 a 5 págs)</span>
+                <span id="labelDocsCurtos" class="barra-qtd">0 docs</span>
+              </div>
+              <div class="barra-trilho">
+                <div class="barra-preenchimento bar-curta" id="barraDocsCurtos" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="barra-dist-container">
+              <div class="barra-info">
+                <span>Documentos Médios (6 a 15 págs)</span>
+                <span id="labelDocsMedios" class="barra-qtd">0 docs</span>
+              </div>
+              <div class="barra-trilho">
+                <div class="barra-preenchimento bar-media" id="barraDocsMedios" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="barra-dist-container">
+              <div class="barra-info">
+                <span>Documentos Extensos (> 15 págs)</span>
+                <span id="labelDocsLongos" class="barra-qtd">0 docs</span>
+              </div>
+              <div class="barra-trilho">
+                <div class="barra-preenchimento bar-longa" id="barraDocsLongos" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="painel-card">
+          <div class="painel-cabecalho">
+            <div>
+              <h2 class="painel-titulo">Ações Rápidas</h2>
+              <p class="painel-subtitulo">Acesso direto às operações centrais do HEMADA</p>
+            </div>
+          </div>
+
+          <div class="grade-atalhos">
+            <button class="card-atalho" onclick="navegarPara('upload')">
+              <div class="atalho-icone icone-azul">⚡</div>
+              <div class="atalho-info">
+                <span class="atalho-titulo">Analisar Novo PDF</span>
+                <span class="atalho-desc">Envie um documento para extração e síntese inteligente com a IA.</span>
+              </div>
+              <span class="atalho-seta">→</span>
+            </button>
+
+            <button class="card-atalho" onclick="navegarPara('historico')">
+              <div class="atalho-icone icone-esmeralda">📁</div>
+              <div class="atalho-info">
+                <span class="atalho-titulo">Explorar Histórico</span>
+                <span class="atalho-desc">Consulte relatórios estruturados e análises salvas no banco SQLite.</span>
+              </div>
+              <span class="atalho-seta">→</span>
+            </button>
+
+            <button class="card-atalho" onclick="navegarPara('chat')">
+              <div class="atalho-icone icone-roxo">💬</div>
+              <div class="atalho-info">
+                <span class="atalho-titulo">Chat com o Documento</span>
+                <span class="atalho-desc">Faça perguntas diretas sobre cláusulas, prazos e fatos com a IA.</span>
+              </div>
+              <span class="atalho-seta">→</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tabela de Atividade Recente -->
+      <div class="painel-card">
+        <div class="painel-cabecalho">
+          <div>
+            <h2 class="painel-titulo">Atividades Recentes</h2>
+            <p class="painel-subtitulo">Últimos documentos cadastrados e processados pelo sistema</p>
+          </div>
+          <button class="btn-link" onclick="navegarPara('historico')">Ver Histórico Completo →</button>
+        </div>
+
+        <div id="listaAtividadeRecente" class="lista-atividade-container">
+          <div class="estado-carregando">
+            <span class="spinner-inline"></span> Carregando registros do banco SQLite...
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         TELA 2: ANÁLISE DOCUMENTAL (UPLOAD)
+    ══════════════════════════════════════════════════════ -->
+    <section class="tela oculto" id="telaUpload">
+
+      <div class="painel-card">
+        <div class="painel-cabecalho">
+          <div>
+            <h2 class="painel-titulo">Upload e Inteligência Documental</h2>
+            <p class="painel-subtitulo">Envie documentos em PDF (pequenos ou extensos) para análise completa com IA</p>
+          </div>
+          <div class="badge-pill">Limite: 10 MB</div>
+        </div>
+
+        <!-- Zona de Drag and Drop -->
+        <div class="zona-drop" id="zonaDrop">
+          <div class="zona-drop-conteudo">
+            <div class="zona-drop-icone-wrapper">
+              <span class="zona-drop-icone">📄</span>
+            </div>
+            <h3 class="zona-drop-titulo">Arraste e solte o arquivo PDF aqui</h3>
+            <p class="zona-drop-instrucao">ou <label for="inputArquivo" class="link-selecionar">selecione do seu
+                computador</label></p>
+            <span class="zona-drop-specs">Suporte a documentos nativos em PDF · Leitura textual via PyMuPDF</span>
+          </div>
+          <input type="file" id="inputArquivo" accept="application/pdf" class="input-oculto" />
+        </div>
+
+        <!-- Card de Preview do Arquivo Selecionado -->
+        <div class="preview-arquivo oculto" id="previewArquivo">
+          <div class="preview-lado-esquerdo">
+            <div class="preview-icone-doc">PDF</div>
+            <div class="preview-metadados">
+              <span class="preview-nome" id="previewNome">—</span>
+              <div class="preview-tags">
+                <span class="preview-tamanho" id="previewTamanho">—</span>
+                <span class="badge-formato">Documento Válido</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-icone-remover" id="btnRemoverArquivo" title="Trocar arquivo selecionado">
+            ✕
+          </button>
+        </div>
+
+        <!-- Instrução Opcional para a IA -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="inputPergunta">
+            <span>Instrução ou foco específico</span>
+            <span class="campo-opcional">(opcional)</span>
+          </label>
+          <input type="text" id="inputPergunta" class="input-texto"
+            placeholder="Ex: Destaque as obrigações das partes, prazos de entrega e cláusulas de rescisão..." />
+          <p class="campo-ajuda">A IA priorizará sua instrução mantendo a extração completa das 8 categorias
+            documentais.</p>
+        </div>
+
+        <!-- Botão de Disparo da Análise -->
+        <div class="upload-acoes">
+          <button class="btn-primario btn-grande" id="btnEnviar" disabled>
+            <span id="btnEnviarTexto">Iniciar Inteligência Documental</span>
+            <span class="spinner oculto" id="spinnerEnvio"></span>
+          </button>
+        </div>
+
+        <!-- Stepper de Progresso Visual Durante Processamento -->
+        <div class="progresso-processamento oculto" id="progressoProcessamento">
+          <div class="progresso-barra-trilho">
+            <div class="progresso-barra-animada" id="barraProgressoAnimada"></div>
+          </div>
+          <div class="etapas-processamento">
+            <div class="etapa-item ativa" id="etapa1">
+              <span class="etapa-icone">1</span>
+              <span class="etapa-label">Validação</span>
+            </div>
+            <div class="etapa-item" id="etapa2">
+              <span class="etapa-icone">2</span>
+              <span class="etapa-label">Extração PyMuPDF</span>
+            </div>
+            <div class="etapa-item" id="etapa3">
+              <span class="etapa-icone">3</span>
+              <span class="etapa-label">IA Groq</span>
+            </div>
+            <div class="etapa-item" id="etapa4">
+              <span class="etapa-icone">4</span>
+              <span class="etapa-label">Persistência SQLite</span>
+            </div>
+          </div>
+          <p class="progresso-status-texto" id="textoStatusProgresso">Processando documento...</p>
+        </div>
+
+        <!-- Feedback de Status / Erro -->
+        <div id="msgStatus" class="alerta-box oculto"></div>
+      </div>
+
+      <!-- SEÇÃO DO RESULTADO DA ANÁLISE (EXIBIÇÃO DAS 8 CATEGORIAS) -->
+      <div class="painel-card resultado-container oculto" id="secaoResultado">
+
+        <div class="resultado-topo">
+          <div class="resultado-titulos">
+            <div class="resultado-badge-sucesso">✓ Análise Concluída</div>
+            <h2 class="resultado-nome" id="resultadoNomeArquivo">—</h2>
+            <div class="resultado-subinfo">
+              <span class="badge-paginas" id="resultadoPaginas">— páginas</span>
+              <span class="resultado-data-hora" id="resultadoHora">Processado agora</span>
+            </div>
+          </div>
+
+          <!-- Ações do Relatório -->
+          <div class="resultado-botoes-acao">
+            <button class="btn-secundario" id="btnCopiarResumo" onclick="copiarResumoGeral()"
+              title="Copiar resumo para área de transferência">
+              📋 Copiar Resumo
+            </button>
+            <button class="btn-secundario" id="btnExportarTxt" onclick="exportarRelatorioTxt()"
+              title="Baixar relatório completo em texto">
+              ⬇ Baixar Relatório
+            </button>
+            <button class="btn-primario" id="btnChatDocumento" onclick="abrirChatDocumento()">
+              💬 Perguntar no Chat
+            </button>
+          </div>
+        </div>
+
+        <!-- Seletor de Modo de Visualização -->
+        <div class="modo-visualizacao-barra">
+          <span class="modo-label">Modo de visualização:</span>
+          <div class="modo-botoes">
+            <button class="btn-tab ativo" id="tabCards" onclick="alternarModoVisualizacao('cards')">Cards Estruturados
+              (8 Categorias)</button>
+            <button class="btn-tab" id="tabTexto" onclick="alternarModoVisualizacao('texto')">Relatório Sintético
+              Completo</button>
+          </div>
+        </div>
+
+        <!-- Visualização 1: Grade com as 8 Categorias -->
+        <div class="grade-categorias" id="gradeCategorias">
+          <!-- Preenchido via JavaScript -->
+        </div>
+
+        <!-- Visualização 2: Relatório em Texto Executivo -->
+        <div class="relatorio-texto-box oculto" id="relatorioTextoBox">
+          <pre id="relatorioTextoConteudo" class="relatorio-pre"></pre>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         TELA 3: HISTÓRICO DE DOCUMENTOS
+    ══════════════════════════════════════════════════════ -->
+    <section class="tela oculto" id="telaHistorico">
+
+      <div class="painel-card">
+        <div class="painel-cabecalho">
+          <div>
+            <h2 class="painel-titulo">Repositório de Documentos Processados</h2>
+            <p class="painel-subtitulo">Consulte documentos, relatórios estruturados e análises salvas no SQLite</p>
+          </div>
+          <button class="btn-perigo-suave" id="btnLimparHistorico" title="Excluir histórico de documentos">
+            🗑 Limpar Todo o Histórico
+          </button>
+        </div>
+
+        <!-- Barra de Busca e Filtros -->
+        <div class="historico-ferramentas">
+          <div class="busca-input-wrapper">
+            <span class="busca-icone">🔍</span>
+            <input type="text" id="inputBuscaHistorico" class="input-busca"
+              placeholder="Buscar por nome do arquivo PDF..." />
+          </div>
+
+          <div class="historico-ordenacao">
+            <label for="selectOrdenacaoHistorico" class="label-ordenacao">Ordenar:</label>
+            <select id="selectOrdenacaoHistorico" class="select-ordenacao">
+              <option value="recente">Mais recentes primeiro</option>
+              <option value="antigo">Mais antigos primeiro</option>
+              <option value="paginas_desc">Maior volume de páginas</option>
+              <option value="paginas_asc">Menor volume de páginas</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lista / Tabela do Histórico -->
+        <div id="conteudoHistorico" class="lista-historico-wrapper">
+          <div class="estado-carregando">
+            <span class="spinner-inline"></span> Carregando documentos do banco de dados...
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         TELA 4: ASSISTENTE DE IA (CHAT CONTEXTUALIZADO)
+    ══════════════════════════════════════════════════════ -->
+    <section class="tela oculto" id="telaChat">
+
+      <div class="painel-card chat-wrapper">
+
+        <!-- Cabeçalho do Chat -->
+        <div class="chat-cabecalho-card">
+          <div class="chat-doc-info">
+            <span class="chat-doc-icone">🤖</span>
+            <div class="chat-doc-textos">
+              <h2 class="chat-doc-titulo">Assistente Cognitivo HEMADA</h2>
+              <p class="chat-doc-subtitulo" id="chatDocSubtitulo">Selecione um documento para iniciar a interação
+                contextualizada</p>
+            </div>
+          </div>
+
+          <div class="chat-doc-seletor-wrapper">
+            <label for="seletorDocumentoChat" class="sr-only">Selecione o documento</label>
+            <select id="seletorDocumentoChat" class="select-chat-doc">
+              <option value="">— Carregando documentos... —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sugestões de Perguntas Rápidas (Pills) -->
+        <div class="chat-sugestoes" id="chatSugestoes">
+          <span class="sugestao-label">Perguntas sugeridas:</span>
+          <button class="pill-sugestao" onclick="usarSugestaoChat('Qual é o objetivo e tema central deste documento?')">
+            🎯 Objetivo central
+          </button>
+          <button class="pill-sugestao"
+            onclick="usarSugestaoChat('Quais são as datas, prazos e vencimentos identificados?')">
+            📅 Datas e prazos
+          </button>
+          <button class="pill-sugestao"
+            onclick="usarSugestaoChat('Quais valores monetários e custos constam no documento?')">
+            💰 Valores e finanças
+          </button>
+          <button class="pill-sugestao"
+            onclick="usarSugestaoChat('Quais são as pendências, riscos ou pontos de atenção?')">
+            ⚠️ Pendências e riscos
+          </button>
+        </div>
+
+        <!-- Área de Conversação (Balões) -->
+        <div class="chat-historico-mensagens" id="chatMensagens">
+          <div class="chat-estado-vazio" id="chatEstadoVazio">
+            <div class="chat-vazio-icone">💬</div>
+            <h3>Assistente Pronto para Responder</h3>
+            <p>Selecione um documento no campo acima e faça qualquer pergunta para obter esclarecimentos estritamente
+              factuais baseados no texto do PDF.</p>
+          </div>
+        </div>
+
+        <!-- Indicador de Digitação da IA -->
+        <div class="chat-digitando oculto" id="chatDigitando">
+          <div class="digitando-pontos">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="digitando-texto">HEMADA está analisando o contexto e gerando a resposta...</span>
+        </div>
+
+        <!-- Barra de Entrada e Envio -->
+        <div class="chat-barra-envio">
+          <textarea id="inputChatMensagem" class="chat-textarea" rows="1"
+            placeholder="Digite sua dúvida sobre o documento selecionado... (Pressione Enter para enviar)"
+            disabled></textarea>
+
+          <button class="btn-primario btn-enviar-chat" id="btnChatEnviar" disabled title="Enviar mensagem">
+            <span id="btnChatTexto">Enviar</span>
+            <span class="icone-enviar">➔</span>
+            <span class="spinner oculto" id="spinnerChat"></span>
+          </button>
+        </div>
+
+        <div id="msgStatusChat" class="alerta-box oculto"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL: VISUALIZAÇÃO DETALHADA DO HISTÓRICO
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay oculto" id="modalOverlay">
+    <div class="modal-janela">
+      <div class="modal-cabecalho">
+        <div class="modal-info-doc">
+          <span class="modal-icone-badge">PDF</span>
+          <div>
+            <h3 class="modal-titulo" id="modalTitulo">—</h3>
+            <span class="badge-paginas" id="modalPaginas">— páginas</span>
+          </div>
+        </div>
+        <div class="modal-acoes-topo">
+          <button class="btn-secundario btn-pequeno" id="btnCopiarModal" onclick="copiarConteudoModal()">
+            📋 Copiar Análise
+          </button>
+          <button class="btn-fechar-modal" id="btnFecharModal" aria-label="Fechar janela modal">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-corpo" id="modalCorpo">
+        <!-- Preenchido via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
 </body>
+
 </html>

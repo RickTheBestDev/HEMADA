@@ -495,7 +495,7 @@ def analisar_documento_com_ia(texto_documento: str, comando_adicional: str = "")
             detail="Chave de API da Groq não configurada no servidor (.env)."
         )
 
-    modelo_groq = os.getenv("GROQ_MODEL", MODELO_PADRAO_GROQ)
+    modelo_groq = os.getenv("GROQ_MODEL") or MODELO_PADRAO_GROQ
 
     # Divide o texto em blocos de até 6.000 caracteres para respeitar os limites de TPM (8.000 tokens/min)
     partes = dividir_texto_em_partes(texto_documento, LIMITE_CARACTERES_PARTE)

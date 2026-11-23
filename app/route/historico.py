@@ -5,16 +5,20 @@ from app.model.documento import Documento
 historico = APIRouter()
 
 @historico.get("/historico/")
-async def listar_historico():
+def listar_historico():
     banco = SessionLocal()
-    documentos_salvos = banco.query(Documento).all() 
-    banco.close()
-    return documentos_salvos
+    try:
+        documentos_salvos = banco.query(Documento).all() 
+        return documentos_salvos
+    finally:
+        banco.close()
 
 @historico.get("/limpar-historico/")
-async def apagar_historico():
+def apagar_historico():
     banco = SessionLocal()
-    banco.query(Documento).delete()
-    banco.commit()
-    banco.close()
-    return {"status": "Histórico apagado"}
+    try:
+        banco.query(Documento).delete()
+        banco.commit()
+        return {"status": "Histórico apagado"}
+    finally:
+        banco.close()
