@@ -2,18 +2,19 @@
 // HEMADA — script.js
 // Lógica Completa do Front-End (SPA)
 // Módulos: Dashboard, Upload & Análise, Histórico, Chat IA, Modais
+// Ícones: Lucide Icons (Renderização Vetorial SVG Consistente)
 // ═══════════════════════════════════════════════════════════════
 
 // ── 1. DEFINIÇÃO DAS 8 CATEGORIAS DOCUMENTAIS ──
 const CATEGORIAS_SCHEMA = [
-  { chave: "resumo_geral", titulo: "Resumo Geral", icone: "📋", classe: "cat-resumo", tipo: "texto", larga: true },
-  { chave: "assunto_principal", titulo: "Assunto Principal", icone: "📌", classe: "cat-assunto", tipo: "texto", larga: true },
-  { chave: "informacoes_importantes", titulo: "Informações Importantes", icone: "⭐", classe: "cat-informacoes", tipo: "lista" },
-  { chave: "datas_identificadas", titulo: "Datas e Prazos", icone: "📅", classe: "cat-datas", tipo: "lista" },
-  { chave: "valores_monetarios", titulo: "Valores Monetários", icone: "💰", classe: "cat-valores", tipo: "lista" },
-  { chave: "pessoas_e_empresas", titulo: "Pessoas e Empresas", icone: "👥", classe: "cat-pessoas", tipo: "lista" },
-  { chave: "pendencias", titulo: "Pendências Identificadas", icone: "⚠️", classe: "cat-pendencias", tipo: "lista" },
-  { chave: "pontos_de_atencao", titulo: "Pontos de Atenção", icone: "🔍", classe: "cat-atencao", tipo: "lista" },
+  { chave: "resumo_geral", titulo: "Resumo Geral", icone: "file-text", classe: "cat-resumo", tipo: "texto", larga: true },
+  { chave: "assunto_principal", titulo: "Assunto Principal", icone: "bookmark", classe: "cat-assunto", tipo: "texto", larga: true },
+  { chave: "informacoes_importantes", titulo: "Informações Importantes", icone: "info", classe: "cat-informacoes", tipo: "lista" },
+  { chave: "datas_identificadas", titulo: "Datas e Prazos", icone: "calendar", classe: "cat-datas", tipo: "lista" },
+  { chave: "valores_monetarios", titulo: "Valores Monetários", icone: "dollar-sign", classe: "cat-valores", tipo: "lista" },
+  { chave: "pessoas_e_empresas", titulo: "Pessoas e Empresas", icone: "users", classe: "cat-pessoas", tipo: "lista" },
+  { chave: "pendencias", titulo: "Pendências Identificadas", icone: "alert-circle", classe: "cat-pendencias", tipo: "lista" },
+  { chave: "pontos_de_atencao", titulo: "Pontos de Atenção", icone: "alert-triangle", classe: "cat-atencao", tipo: "lista" },
 ];
 
 // Estado Global da Aplicação
@@ -32,7 +33,7 @@ const appEstado = {
 };
 
 // ══════════════════════════════════════════════════════════════
-// 2. INICIALIZAÇÃO DA APLICAÇÃO
+// 2. INICIALIZAÇÃO DA APLICAÇÃO E ÍCONES
 // ══════════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => {
   configurarNavegacaoSPA();
@@ -41,12 +42,31 @@ document.addEventListener("DOMContentLoaded", () => {
   configurarChat();
   configurarModal();
 
+  // Renderiza ícones iniciais do HTML
+  atualizarIconesLucide();
+
   // Define a tela inicial com base no hash ou padrão
   const hashAtual = window.location.hash.replace("#", "");
   const paginasValidas = ["dashboard", "upload", "historico", "chat"];
   const paginaInicial = paginasValidas.includes(hashAtual) ? hashAtual : "dashboard";
   navegarPara(paginaInicial);
 });
+
+/** Executa a substituição dos elementos <i data-lucide="..."> por SVGs vetorizados */
+function atualizarIconesLucide() {
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    try {
+      window.lucide.createIcons({
+        attrs: {
+          class: ["lucide-icone"],
+          "stroke-width": 1.75
+        }
+      });
+    } catch (e) {
+      console.warn("Lucide Icons init:", e);
+    }
+  }
+}
 
 // ══════════════════════════════════════════════════════════════
 // 3. NAVEGAÇÃO SPA (ROUTING POR HASH)
@@ -140,6 +160,7 @@ function navegarPara(pagina, atualizarHash = true) {
     history.replaceState(null, "", `#${pagina}`);
   }
 
+  atualizarIconesLucide();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -178,11 +199,13 @@ async function carregarDashboard() {
   } catch (erro) {
     listaAtividade.innerHTML = `
       <div class="alerta-box alerta-erro">
-        ⚠️ Não foi possível carregar os dados do dashboard. Verifique se o servidor FastAPI está ativo.
+        <i data-lucide="alert-circle"></i>
+        <span>Não foi possível carregar os dados do dashboard. Verifique se o servidor backend está ativo.</span>
       </div>`;
     elTotalDocs.textContent = "—";
     elTotalPags.textContent = "—";
     elMediaPags.textContent = "—";
+    atualizarIconesLucide();
   }
 }
 
@@ -220,12 +243,14 @@ function renderizarAtividadesRecentes(docs) {
   if (docs.length === 0) {
     listaAtividade.innerHTML = `
       <div class="estado-vazio">
-        <span class="estado-vazio-icone">📂</span>
+        <span class="estado-vazio-icone"><i data-lucide="inbox"></i></span>
         <p>Nenhum documento processado até o momento.</p>
         <button class="btn-primario" style="margin-top:12px;" onclick="navegarPara('upload')">
-          ⚡ Analisar Primeiro Documento
+          <i data-lucide="file-up"></i>
+          <span>Analisar Primeiro Documento</span>
         </button>
       </div>`;
+    atualizarIconesLucide();
     return;
   }
 
@@ -241,7 +266,9 @@ function renderizarAtividadesRecentes(docs) {
 
     item.innerHTML = `
       <div class="ativ-esquerda">
-        <div class="ativ-icone-badge">PDF</div>
+        <div class="ativ-icone-badge">
+          <i data-lucide="file-text"></i>
+        </div>
         <div class="ativ-textos">
           <div class="ativ-nome" title="${escaparHtml(doc.nome_arquivo)}">${escaparHtml(doc.nome_arquivo)}</div>
           <div class="ativ-meta">
@@ -250,8 +277,14 @@ function renderizarAtividadesRecentes(docs) {
         </div>
       </div>
       <div class="ativ-acoes">
-        <button class="btn-secundario btn-pequeno btn-ver-ativ">Ver Análise</button>
-        <button class="btn-secundario btn-pequeno btn-chat-ativ">💬 Chat</button>
+        <button class="btn-secundario btn-pequeno btn-ver-ativ">
+          <i data-lucide="eye"></i>
+          <span>Ver Análise</span>
+        </button>
+        <button class="btn-secundario btn-pequeno btn-chat-ativ">
+          <i data-lucide="message-square"></i>
+          <span>Chat</span>
+        </button>
       </div>
     `;
 
@@ -260,6 +293,8 @@ function renderizarAtividadesRecentes(docs) {
 
     listaAtividade.appendChild(item);
   });
+
+  atualizarIconesLucide();
 }
 
 function extrairPreviaAssunto(respostaIa) {
@@ -358,6 +393,7 @@ function processarSelecaoArquivo(arquivo) {
   // Limpa alertas e fecha resultados anteriores
   ocultarElemento("msgStatus");
   ocultarElemento("secaoResultado");
+  atualizarIconesLucide();
 }
 
 function limparArquivoUpload() {
@@ -411,7 +447,7 @@ async function executarUploadDocumento() {
     appEstado.documentoAtivoNome = dados.arquivo;
 
     exibirAlerta("msgStatus", `Documento processado com êxito! ${dados.total_paginas} página(s) analisada(s) e persistida(s).`, "sucesso");
-    exibirToast("Análise documental concluída com sucesso!", "✓");
+    exibirToast("Análise documental concluída com sucesso!", "check");
 
     // Renderiza o resultado na tela
     renderizarResultadoAnalise(dados);
@@ -493,6 +529,7 @@ function renderizarResultadoAnalise(dados) {
 
   const secaoResultado = document.getElementById("secaoResultado");
   secaoResultado.classList.remove("oculto");
+  atualizarIconesLucide();
   secaoResultado.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -512,7 +549,7 @@ function montarCardCategoria(cat, valor) {
 
   cabecalho.innerHTML = `
     <div class="cat-titulo-wrapper">
-      <span class="cat-icone">${cat.icone}</span>
+      <span class="cat-icone"><i data-lucide="${cat.icone}"></i></span>
       <h3 class="cat-titulo">${cat.titulo}</h3>
     </div>
     ${contagemItens}
@@ -593,7 +630,7 @@ function exportarRelatorioTxt() {
   a.download = `Relatorio_HEMADA_${dados.arquivo.replace(/\.[^/.]+$/, "")}.txt`;
   a.click();
   URL.revokeObjectURL(url);
-  exibirToast("Download do relatório iniciado!", "⬇");
+  exibirToast("Download do relatório iniciado!", "download");
 }
 
 function abrirChatDocumento() {
@@ -632,7 +669,7 @@ function configurarHistorico() {
     try {
       await apiRequisicao("/limpar-historico/");
       appEstado.cacheDocumentos = [];
-      exibirToast("Histórico apagado com sucesso!", "✓");
+      exibirToast("Histórico apagado com sucesso!", "check");
       aplicarFiltrosEExibirHistorico();
     } catch (erro) {
       alert(`Falha ao limpar histórico: ${erro.message}`);
@@ -654,8 +691,10 @@ async function carregarHistorico() {
   } catch (erro) {
     container.innerHTML = `
       <div class="alerta-box alerta-erro">
-        ⚠️ Não foi possível carregar os documentos do histórico. Verifique a conexão com o servidor backend.
+        <i data-lucide="alert-circle"></i>
+        <span>Não foi possível carregar os documentos do histórico. Verifique a conexão com o servidor backend.</span>
       </div>`;
+    atualizarIconesLucide();
   }
 }
 
@@ -687,13 +726,15 @@ function aplicarFiltrosEExibirHistorico() {
       : "Nenhum documento persistido no SQLite ainda.";
     container.innerHTML = `
       <div class="estado-vazio">
-        <span class="estado-vazio-icone">📂</span>
+        <span class="estado-vazio-icone"><i data-lucide="folder-search"></i></span>
         <p>${msg}</p>
         ${!appEstado.termoBuscaHistorico ? `
         <button class="btn-primario" style="margin-top:12px;" onclick="navegarPara('upload')">
-          ⚡ Enviar Novo Documento
+          <i data-lucide="file-up"></i>
+          <span>Enviar Novo Documento</span>
         </button>` : ""}
       </div>`;
+    atualizarIconesLucide();
     return;
   }
 
@@ -713,8 +754,14 @@ function aplicarFiltrosEExibirHistorico() {
         </div>
       </div>
       <div class="hist-col-acoes">
-        <button class="btn-secundario btn-pequeno btn-ver-doc">📋 Ver Análise</button>
-        <button class="btn-primario btn-pequeno btn-chat-doc">💬 Chat IA</button>
+        <button class="btn-secundario btn-pequeno btn-ver-doc">
+          <i data-lucide="eye"></i>
+          <span>Ver Análise</span>
+        </button>
+        <button class="btn-primario btn-pequeno btn-chat-doc">
+          <i data-lucide="message-square"></i>
+          <span>Chat IA</span>
+        </button>
       </div>
     `;
 
@@ -723,6 +770,8 @@ function aplicarFiltrosEExibirHistorico() {
 
     container.appendChild(item);
   });
+
+  atualizarIconesLucide();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -828,7 +877,7 @@ function usarSugestaoChat(textoPergunta) {
   const seletor = document.getElementById("seletorDocumentoChat");
 
   if (!seletor.value) {
-    exibirToast("Por favor, selecione um documento antes de fazer perguntas.", "⚠️");
+    exibirToast("Por favor, selecione um documento antes de fazer perguntas.", "alert-triangle");
     seletor.focus();
     return;
   }
@@ -872,7 +921,7 @@ async function executarEnvioMensagemChat() {
     adicionarBalaoMensagem("ia", dados.resposta || "Sem resposta retornada pela IA.", dados.contexto_truncado);
 
   } catch (erro) {
-    adicionarBalaoMensagem("ia", `⚠️ Falha ao obter resposta: ${erro.message}`);
+    adicionarBalaoMensagem("ia", `Falha ao obter resposta: ${erro.message}`);
   } finally {
     appEstado.emProcessamentoChat = false;
     alternarSpinnerBotao("btnChatEnviar", "spinnerChat", "btnChatTexto", false, "Enviar");
@@ -889,7 +938,7 @@ function adicionarBalaoMensagem(autor, texto, contextoTruncado = false) {
 
   const avatar = document.createElement("div");
   avatar.className = "balao-avatar";
-  avatar.textContent = autor === "usuario" ? "👤" : "⬡";
+  avatar.innerHTML = autor === "usuario" ? '<i data-lucide="user"></i>' : '<i data-lucide="bot"></i>';
 
   const corpo = document.createElement("div");
   corpo.className = "balao-corpo";
@@ -909,7 +958,7 @@ function adicionarBalaoMensagem(autor, texto, contextoTruncado = false) {
 
   meta.innerHTML = `
     <span>${hora} ${badgeTruncado}</span>
-    ${autor === "ia" ? `<button class="btn-copiar-balao" title="Copiar resposta">Copiar</button>` : ""}
+    ${autor === "ia" ? `<button class="btn-copiar-balao" title="Copiar resposta"><i data-lucide="copy"></i><span>Copiar</span></button>` : ""}
   `;
 
   if (autor === "ia") {
@@ -925,6 +974,7 @@ function adicionarBalaoMensagem(autor, texto, contextoTruncado = false) {
   linha.appendChild(corpo);
 
   container.appendChild(linha);
+  atualizarIconesLucide();
   container.scrollTop = container.scrollHeight;
 }
 
@@ -973,6 +1023,7 @@ function abrirModalDocumento(doc) {
 
   document.getElementById("modalOverlay").classList.remove("oculto");
   document.body.style.overflow = "hidden";
+  atualizarIconesLucide();
 }
 
 function fecharModal() {
@@ -1005,9 +1056,12 @@ async function apiRequisicao(url) {
 function exibirAlerta(idElemento, texto, tipo) {
   const el = document.getElementById(idElemento);
   if (!el) return;
-  el.textContent = texto;
+
+  const iconeNome = tipo === "sucesso" ? "check" : (tipo === "erro" ? "alert-circle" : "info");
+  el.innerHTML = `<i data-lucide="${iconeNome}"></i><span>${escaparHtml(texto)}</span>`;
   el.className = `alerta-box alerta-${tipo}`;
   el.classList.remove("oculto");
+  atualizarIconesLucide();
 }
 
 function ocultarElemento(idElemento) {
@@ -1023,19 +1077,21 @@ function alternarSpinnerBotao(idBotao, idSpinner, idTexto, emProcessamento, text
   if (btn) btn.disabled = emProcessamento;
   if (spinner) spinner.classList.toggle("oculto", !emProcessamento);
   if (texto && textoAlternativo !== undefined) texto.textContent = textoAlternativo;
+  atualizarIconesLucide();
 }
 
-/** Notificação Toast Flutuante */
-function exibirToast(mensagem, icone = "✓") {
+/** Notificação Toast Flutuante com ícone Lucide */
+function exibirToast(mensagem, icone = "check") {
   const toast = document.getElementById("toastNotificacao");
   const elIcone = document.getElementById("toastIcone");
   const elMensagem = document.getElementById("toastMensagem");
 
   if (!toast) return;
 
-  elIcone.textContent = icone;
+  elIcone.innerHTML = `<i data-lucide="${icone}"></i>`;
   elMensagem.textContent = mensagem;
   toast.classList.remove("oculto");
+  atualizarIconesLucide();
 
   clearTimeout(toast.timerToast);
   toast.timerToast = setTimeout(() => {
@@ -1047,7 +1103,7 @@ function exibirToast(mensagem, icone = "✓") {
 function copiarParaClipboard(texto, mensagemSucesso = "Copiado!") {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(texto)
-      .then(() => exibirToast(mensagemSucesso, "📋"))
+      .then(() => exibirToast(mensagemSucesso, "copy"))
       .catch(() => fallbackCopiarClipboard(texto, mensagemSucesso));
   } else {
     fallbackCopiarClipboard(texto, mensagemSucesso);
@@ -1063,9 +1119,9 @@ function fallbackCopiarClipboard(texto, mensagemSucesso) {
   area.select();
   try {
     document.execCommand("copy");
-    exibirToast(mensagemSucesso, "📋");
+    exibirToast(mensagemSucesso, "copy");
   } catch (e) {
-    exibirToast("Não foi possível copiar automaticamente.", "⚠️");
+    exibirToast("Não foi possível copiar automaticamente.", "alert-triangle");
   }
   document.body.removeChild(area);
 }
